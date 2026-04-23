@@ -17,21 +17,35 @@ const index = (req, res) => {
 
 // SHOW - get film by id 
 const show = (req, res) => {
-
-    const sql = 'SELECT * FROM movies WHERE id = ?';
     const id = req.params.id;
 
-    connection.query(sql, [id], (err, results) => {
+    const sqlFilm = 'SELECT * FROM movies WHERE id = ?';
+
+    connection.query(sqlFilm, [id], (err, filmResults) => {
         if (err) {
             console.error("Error executing query:", err);
             res.status(500).json({ error: 'Internal Server Error' });
             return;
         }
-        if (results.length === 0) {
+        if (filmResults.length === 0) {
             res.status(404).json({ error: 'Film not found' });
             return;
         }
-        res.json(results[0]);
+
+        const film = filmResults[0];
+
+        const sqlReviews = 'SELECT * FROM reviews WHERE movie_id = ?';
+
+        connection.query(sqlReviews, [id], (err, reviewResults) => {
+            if (err) {
+                console.error("Error executing query:", err);
+                res.status(500).json({ error: 'Internal Server Error' });
+                return;
+            }
+
+            film.reviews = reviewResults;
+            res.json(film);
+        });
     });
 }
 
